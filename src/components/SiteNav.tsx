@@ -13,6 +13,7 @@ export function SiteNav() {
       </Link>
       <div className="hidden sm:flex items-center gap-8 text-sm font-medium text-muted-foreground">
         <Link to="/rooms" className="hover:text-primary transition-colors">Rooms</Link>
+        <Link to="/messages" className="hover:text-primary transition-colors">Messages</Link>
         <Link to="/" hash="features" className="hover:text-primary transition-colors">Features</Link>
         <Link to="/premium" className="hover:text-primary transition-colors">Premium</Link>
       </div>
