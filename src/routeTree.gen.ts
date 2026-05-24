@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RoomsRouteImport } from './routes/rooms'
 import { Route as PremiumRouteImport } from './routes/premium'
+import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RoomsRoomIdRouteImport } from './routes/rooms.$roomId'
+import { Route as MessagesConversationIdRouteImport } from './routes/messages.$conversationId'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
@@ -25,6 +27,11 @@ const RoomsRoute = RoomsRouteImport.update({
 const PremiumRoute = PremiumRouteImport.update({
   id: '/premium',
   path: '/premium',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -42,6 +49,11 @@ const RoomsRoomIdRoute = RoomsRoomIdRouteImport.update({
   path: '/$roomId',
   getParentRoute: () => RoomsRoute,
 } as any)
+const MessagesConversationIdRoute = MessagesConversationIdRouteImport.update({
+  id: '/$conversationId',
+  path: '/$conversationId',
+  getParentRoute: () => MessagesRoute,
+} as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
   path: '/checkout/return',
@@ -57,18 +69,22 @@ const ApiPublicPaymentsWebhookRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/messages': typeof MessagesRouteWithChildren
   '/premium': typeof PremiumRoute
   '/rooms': typeof RoomsRouteWithChildren
   '/checkout/return': typeof CheckoutReturnRoute
+  '/messages/$conversationId': typeof MessagesConversationIdRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/messages': typeof MessagesRouteWithChildren
   '/premium': typeof PremiumRoute
   '/rooms': typeof RoomsRouteWithChildren
   '/checkout/return': typeof CheckoutReturnRoute
+  '/messages/$conversationId': typeof MessagesConversationIdRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -76,9 +92,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/messages': typeof MessagesRouteWithChildren
   '/premium': typeof PremiumRoute
   '/rooms': typeof RoomsRouteWithChildren
   '/checkout/return': typeof CheckoutReturnRoute
+  '/messages/$conversationId': typeof MessagesConversationIdRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -87,27 +105,33 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/messages'
     | '/premium'
     | '/rooms'
     | '/checkout/return'
+    | '/messages/$conversationId'
     | '/rooms/$roomId'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/messages'
     | '/premium'
     | '/rooms'
     | '/checkout/return'
+    | '/messages/$conversationId'
     | '/rooms/$roomId'
     | '/api/public/payments/webhook'
   id:
     | '__root__'
     | '/'
     | '/auth'
+    | '/messages'
     | '/premium'
     | '/rooms'
     | '/checkout/return'
+    | '/messages/$conversationId'
     | '/rooms/$roomId'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -115,6 +139,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  MessagesRoute: typeof MessagesRouteWithChildren
   PremiumRoute: typeof PremiumRoute
   RoomsRoute: typeof RoomsRouteWithChildren
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -135,6 +160,13 @@ declare module '@tanstack/react-router' {
       path: '/premium'
       fullPath: '/premium'
       preLoaderRoute: typeof PremiumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -158,6 +190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoomsRoomIdRouteImport
       parentRoute: typeof RoomsRoute
     }
+    '/messages/$conversationId': {
+      id: '/messages/$conversationId'
+      path: '/$conversationId'
+      fullPath: '/messages/$conversationId'
+      preLoaderRoute: typeof MessagesConversationIdRouteImport
+      parentRoute: typeof MessagesRoute
+    }
     '/checkout/return': {
       id: '/checkout/return'
       path: '/checkout/return'
@@ -175,6 +214,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface MessagesRouteChildren {
+  MessagesConversationIdRoute: typeof MessagesConversationIdRoute
+}
+
+const MessagesRouteChildren: MessagesRouteChildren = {
+  MessagesConversationIdRoute: MessagesConversationIdRoute,
+}
+
+const MessagesRouteWithChildren = MessagesRoute._addFileChildren(
+  MessagesRouteChildren,
+)
+
 interface RoomsRouteChildren {
   RoomsRoomIdRoute: typeof RoomsRoomIdRoute
 }
@@ -188,6 +239,7 @@ const RoomsRouteWithChildren = RoomsRoute._addFileChildren(RoomsRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  MessagesRoute: MessagesRouteWithChildren,
   PremiumRoute: PremiumRoute,
   RoomsRoute: RoomsRouteWithChildren,
   CheckoutReturnRoute: CheckoutReturnRoute,
@@ -196,3 +248,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
