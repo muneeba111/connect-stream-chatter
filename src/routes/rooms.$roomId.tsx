@@ -113,11 +113,25 @@ function RoomChat() {
             {messages.map((m) => {
               const me = m.user_id === user.id;
               const p = profileMap[m.user_id];
+              const startDM = async () => {
+                if (me) return;
+                const { data, error } = await supabase.rpc("get_or_create_conversation", { _other: m.user_id });
+                if (error) { console.error(error); return; }
+                navigate({ to: "/messages/$conversationId", params: { conversationId: data as string } });
+              };
               return (
                 <div key={m.id} className={`flex ${me ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[75%] ${me ? "bg-primary text-primary-foreground" : "bg-surface-tint text-foreground"} px-4 py-2.5 rounded-2xl ring-1 ring-border`}>
                     <div className={`text-[11px] font-medium mb-1 flex items-center gap-1.5 ${me ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                      <span>{me ? "You" : p?.display_name ?? "user"}</span>
+                      <button
+                        type="button"
+                        onClick={startDM}
+                        disabled={me}
+                        className={me ? "" : "hover:underline hover:text-primary cursor-pointer"}
+                        title={me ? "" : "Send direct message"}
+                      >
+                        {me ? "You" : p?.display_name ?? "user"}
+                      </button>
                       {p?.is_premium && <span className="text-[9px] uppercase tracking-widest bg-white/20 px-1.5 py-0.5 rounded">Pro</span>}
                     </div>
                     <div className="text-sm whitespace-pre-wrap break-words">{m.content}</div>
