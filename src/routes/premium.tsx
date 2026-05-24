@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { createFileRoute, Link, useNavigate, useServerFn } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";

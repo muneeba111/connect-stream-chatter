@@ -8,8 +8,8 @@ function isValidEnv(v: string | null): v is StripeEnv {
 }
 
 async function upsertSubscription(env: StripeEnv, sub: Stripe.Subscription) {
-  const userId = sub.metadata?.userId
-    || (typeof sub.customer === "object" ? sub.customer.metadata?.userId : undefined);
+  const customerMeta = typeof sub.customer === "object" && !sub.customer.deleted ? sub.customer.metadata : undefined;
+  const userId = sub.metadata?.userId || customerMeta?.userId;
 
   let resolvedUserId = userId;
   if (!resolvedUserId && typeof sub.customer === "string") {
