@@ -1,7 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { useAuth } from "@/lib/auth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { createPortalSession } from "@/lib/payments.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
 
 export const Route = createFileRoute("/premium")({
   component: Premium,
@@ -14,9 +21,28 @@ export const Route = createFileRoute("/premium")({
 });
 
 function Premium() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
+  const { isActive } = useSubscription(user?.id);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const navigate = useNavigate();
+  const portalFn = useServerFn(createPortalSession);
+
+  const handleUpgrade = () => {
+    if (!user) {
+      navigate({ to: "/auth" });
+      return;
+    }
+    setCheckoutOpen(true);
+  };
+
+  const handlePortal = async () => {
+    const url = await portalFn({ data: { environment: getStripeEnvironment(), returnUrl: window.location.href } });
+    window.open(url, "_blank");
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <PaymentTestModeBanner />
       <SiteNav />
       <section className="bg-ink text-white py-24">
         <div className="mx-auto max-w-5xl px-6 grid lg:grid-cols-2 gap-12 items-center">
@@ -45,17 +71,21 @@ function Premium() {
                 <span className="text-white/50">/mo</span>
               </div>
             </div>
-            {profile?.is_premium ? (
-              <div className="text-center py-3 rounded-xl bg-primary/20 text-primary-foreground ring-1 ring-primary/40 mb-3">
-                You're a Pro member ✨
-              </div>
+            {isActive ? (
+              <>
+                <div className="text-center py-3 rounded-xl bg-primary/20 text-primary ring-1 ring-primary/40 mb-3">
+                  You're a Pro member ✨
+                </div>
+                <button onClick={handlePortal} className="w-full bg-white text-ink font-medium py-3 rounded-xl hover:opacity-90">
+                  Manage subscription
+                </button>
+              </>
             ) : (
               <button
-                disabled
-                className="w-full bg-white text-ink font-medium py-3 rounded-xl mb-3 opacity-90 cursor-not-allowed"
-                title="Checkout coming soon"
+                onClick={handleUpgrade}
+                className="w-full bg-primary text-primary-foreground font-medium py-3 rounded-xl mb-3 hover:opacity-90"
               >
-                Checkout coming soon
+                {user ? "Upgrade to Pro" : "Sign in to upgrade"}
               </button>
             )}
             {!user && (
@@ -67,6 +97,24 @@ function Premium() {
           </div>
         </div>
       </section>
+
+      {checkoutOpen && user && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-start justify-center overflow-y-auto py-10 px-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h2 className="font-display text-xl font-semibold">Complete your upgrade</h2>
+              <button onClick={() => setCheckoutOpen(false)} className="text-muted-foreground hover:text-foreground text-2xl leading-none">×</button>
+            </div>
+            <StripeEmbeddedCheckout
+              priceId="loophole_pro_monthly"
+              userId={user.id}
+              customerEmail={user.email}
+              returnUrl={`${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`}
+            />
+          </div>
+        </div>
+      )}
+
       <SiteFooter />
     </div>
   );
