@@ -11,10 +11,10 @@ export function SiteNav() {
         <div className="size-8 bg-primary rounded-lg ring-1 ring-black/5 group-hover:rotate-6 transition-transform" />
         <span className="font-display text-xl font-semibold tracking-tight">Loophole</span>
       </Link>
-      <div className="hidden sm:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+      <div className="flex items-center gap-4 sm:gap-8 text-sm font-medium text-muted-foreground">
         <Link to="/rooms" className="hover:text-primary transition-colors">Rooms</Link>
         <Link to="/messages" className="hover:text-primary transition-colors">Messages</Link>
-        <Link to="/" hash="features" className="hover:text-primary transition-colors">Features</Link>
+        <Link to="/" hash="features" className="hidden sm:inline hover:text-primary transition-colors">Features</Link>
         <Link to="/premium" className="hover:text-primary transition-colors">Premium</Link>
       </div>
       {user ? (
